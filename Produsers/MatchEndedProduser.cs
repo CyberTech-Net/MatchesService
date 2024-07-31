@@ -3,22 +3,23 @@ using System;
 using System.Text;
 using System.Text.Json;
 using CyberTech.MessagesContracts.TournamentMeets;
+using CyberTech.MatchesService.Settings;
 
 namespace CyberTech.MatchesService.Produsers
 {
     internal class MatchEndedProduser
     {
-        private string _exchangeType;
-        private string _exchangeName;
-        private string _routingKey;
-        private IModel _model;
-        public MatchEndedProduser(string exchangeType, string exchangeName, string routingKey, bool durable,IModel channel)
+        private readonly string _exchangeType;
+        private readonly string _exchangeName;
+        private readonly string _routingKey;
+        private readonly IModel _model;
+        public MatchEndedProduser(MatchEndedQueueSettings queueSettings, IModel channel)
         {
-            _exchangeName = exchangeName;
-            _exchangeType = exchangeType;
-            _routingKey = routingKey;
+            _exchangeName = queueSettings.ExchangeName;
+            _exchangeType = queueSettings.ExchangeType;
+            _routingKey = queueSettings.RoutingKey;
             _model = channel;
-            _model.ExchangeDeclare(_exchangeName, _exchangeType, durable);
+            _model.ExchangeDeclare(_exchangeName, _exchangeType, queueSettings.Durable);
         }
 
         public void Produce(MatchEnded message)

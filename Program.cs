@@ -3,6 +3,7 @@ using CyberTech.MatchesService.Produsers;
 using CyberTech.MatchesService.Settings;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
+using System;
 
 namespace CyberTech.MatchesService
 {
@@ -12,6 +13,7 @@ namespace CyberTech.MatchesService
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             var connection = GetRabbitConnection(configuration);
@@ -20,16 +22,12 @@ namespace CyberTech.MatchesService
             var matchPlannedQueueSettings = applicationSettings.MatchPlannedQueueSettings;
             var matchEndedQueueSettings = applicationSettings.MatchEndedQueueSettings;
             MatchPlannedConsumer.Register(
-                channel: connection.CreateModel(), 
-                exchangeName: matchPlannedQueueSettings.ExchangeName,
-                queueName: matchPlannedQueueSettings.QueueName,
-                routingKey: matchPlannedQueueSettings.RoutingKey,
+                channel: connection.CreateModel(),
+                queueSettings: matchPlannedQueueSettings,
                 matchEndedProduser: new MatchEndedProduser(
-                    exchangeType: matchEndedQueueSettings.ExchangeType,
-                    exchangeName: matchEndedQueueSettings.ExchangeName,
-                    routingKey: matchEndedQueueSettings.RoutingKey,
-                    durable: matchEndedQueueSettings.Durable,
+                    queueSettings: matchEndedQueueSettings,
                     channel: connection2.CreateModel()));
+
         }
         
         private static IConnection GetRabbitConnection(IConfiguration configuration)
